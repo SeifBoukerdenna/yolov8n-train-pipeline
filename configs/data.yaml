@@ -1,0 +1,6 @@
+train: ../data/images/train
+val:   ../data/images/val
+nc:    2
+names:
+  0: class0
+  1: class1

@@ -1,0 +1,6 @@
+# requirements.txt
+ultralytics>=8.0.20
+google-cloud-storage>=2.0.0
+label-studio-sdk
+pandas
+tqdm
