@@ -1,0 +1,32 @@
+# Google Cloud Storage
+gcs:
+  bucket: bucket-clash-royal-ai
+  prefix: match_1/raw_frames/
+
+# Label Studio
+labelstudio:
+  url: http://localhost:8080
+  api_key: e73c69c8b83fdf2b539cd4e468ef84f49ea78ddd
+  project_id: 9
+
+# Frame Extraction
+extraction:
+  fps: 2
+  quality: 95
+  similarity_threshold: 0.95     # Skip similar frames (0.9-0.99)
+  parallel_workers: 4
+
+# Training
+training:
+  initial_epochs: 50
+  incremental_epochs: 20
+  batch_size: 16
+  img_size: 640
+  auto_increment_epochs: true
+  early_stopping_patience: 10
+  model_versioning: true
+
+# Monitoring (optional)
+monitoring:
+  webhook_url: null              # Slack/Discord webhook
+  email_alerts: null
