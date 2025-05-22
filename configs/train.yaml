@@ -1,0 +1,24 @@
+# configs/train.yaml
+
+# 1) Dataset and model spec
+data: configs/data.yaml       # path to your data config (train/val folders & class names)
+cfg:  yolov8n.pt              # pretrained YOLOv8n weights & architecture
+
+# 2) Training hyper-parameters
+epochs:     20                # number of training epochs
+imgsz:      640               # input image size (pixels)
+batch_size: 4                 # images per batch (reduce if OOM)
+
+# 3) Output settings
+project:    models            # root folder for all runs (models/exp*/)
+run_name:   exp1              # sub-folder name for this run
+resume:     false             # set true to resume from last run
+
+# 4) (Optional) Advanced settings
+# You can uncomment and adjust these if you like:
+#
+# lr0:        0.01             # initial learning rate
+# optimizer:  SGD              # or 'Adam', 'AdamW'
+# augment:    True             # enable built-in augmentations (mosaic, mixup, etc.)
+# workers:    4                # number of data loader workers
+# device:     0                # GPU device index, or 'cpu' for CPU only
