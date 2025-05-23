@@ -10,6 +10,10 @@ case "${1:-help}" in
         echo "⏭️ Continuing pipeline after labeling..."
         python scripts/pipeline.py --continue "${@:2}"
         ;;
+    nuke)
+        echo "💥 NUKING all data..."
+        python scripts/nuke.py "${@:2}"
+        ;;
     sanitize)
         echo "🧹 Sanitizing dataset..."
         python scripts/sanitize.py "${@:2}"
@@ -48,8 +52,11 @@ case "${1:-help}" in
         echo "  continue  - Continue after labeling (export→split→train)"
         echo "  test      - Test trained model on new images"
         echo ""
-        echo "Individual Steps:"
+        echo "Utilities:"
         echo "  sanitize  - Clean empty label pairs"
+        echo "  nuke      - Delete ALL data (DANGER!)"
+        echo ""
+        echo "Individual Steps:"
         echo "  split     - Split dataset into train/val"
         echo "  train     - Train model"
         echo "  validate  - Validate model performance"

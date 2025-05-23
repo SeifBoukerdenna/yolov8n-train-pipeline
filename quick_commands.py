@@ -18,6 +18,7 @@ def main():
         print("""
 Quick Commands for YOLO Pipeline:
 
+python quick_commands.py nuke                             # Delete ALL data (DANGER!)
 python quick_commands.py sanitize [percentage]             # Clean empty labels
 python quick_commands.py extract [--skip N] [--random]    # Extract frames
 python quick_commands.py upload                           # Upload to GCS
@@ -56,6 +57,9 @@ Examples:
         if "--keep" in args:
             base_cmd += " --keep-existing"
         run_cmd(base_cmd)
+
+    elif cmd == "nuke":
+        run_cmd("python scripts/nuke.py")
 
     elif cmd == "sanitize":
         base_cmd = "python scripts/sanitize.py"
