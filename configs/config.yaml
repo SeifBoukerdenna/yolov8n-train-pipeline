@@ -16,6 +16,12 @@ extraction:
   fps: 2
   quality: 95
 
+# Dataset Splitting
+dataset:
+  train_ratio: 0.8
+  val_ratio: 0.2
+  random_seed: 42
+
 # Training
 training:
   epochs: 50

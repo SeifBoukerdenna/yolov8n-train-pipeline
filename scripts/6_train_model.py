@@ -1,4 +1,4 @@
-# scripts/5_train_model.py
+# scripts/6_train_model.py
 
 import yaml
 import argparse
@@ -6,8 +6,26 @@ from pathlib import Path
 from ultralytics import YOLO
 import shutil
 
-def create_dataset_yaml(export_dir, classes):
-    """Create dataset.yaml for training"""
+def find_dataset_yaml(export_dir=None):
+    """Find the dataset.yaml file"""
+    if export_dir:
+        dataset_yaml = Path(export_dir) / "dataset.yaml"
+        if dataset_yaml.exists():
+            return dataset_yaml
+
+    # Find latest export with dataset.yaml
+    annotations_dir = Path("data/annotations")
+    exports = sorted(annotations_dir.glob("export_*"), reverse=True)
+
+    for export in exports:
+        dataset_yaml = export / "dataset.yaml"
+        if dataset_yaml.exists():
+            return dataset_yaml
+
+    return None
+
+def create_legacy_dataset_yaml(export_dir, classes):
+    """Create dataset.yaml for old-style exports (backward compatibility)"""
     dataset_yaml = export_dir / "dataset.yaml"
 
     yaml_content = {
@@ -70,6 +88,7 @@ def main():
                        help='Mode: train, validate, or detect')
     parser.add_argument('--model', help='Model path for validate/detect')
     parser.add_argument('--source', help='Source directory for detect')
+    parser.add_argument('--export-dir', help='Specific export directory to use')
 
     args = parser.parse_args()
 
@@ -78,19 +97,33 @@ def main():
         config = yaml.safe_load(f)
 
     if args.mode == 'train':
-        # Find latest export
-        annotations_dir = Path("data/annotations")
-        exports = sorted(annotations_dir.glob("export_*"))
+        # Find dataset.yaml
+        dataset_yaml = find_dataset_yaml(args.export_dir)
 
-        if not exports:
-            print("❌ No exported annotations found")
-            return
+        if not dataset_yaml:
+            # Try to find latest export and check if it needs splitting
+            annotations_dir = Path("data/annotations")
+            exports = sorted(annotations_dir.glob("export_*"))
 
-        latest_export = exports[-1]
-        print(f"Using export: {latest_export}")
+            if not exports:
+                print("❌ No exported annotations found")
+                return
 
-        # Create dataset YAML
-        dataset_yaml = create_dataset_yaml(latest_export, config['classes'])
+            latest_export = exports[-1]
+
+            # Check if it has train/val structure
+            if (latest_export / "train").exists() and (latest_export / "val").exists():
+                # Has split structure but no dataset.yaml - create it
+                dataset_yaml = create_dataset_yaml(latest_export, config['classes'])
+            else:
+                print("⚠️  Export found but not split into train/val folders")
+                print("🔧 Please run: python scripts/5_split_dataset.py")
+                print("   Then try training again")
+                return
+
+        export_dir = dataset_yaml.parent
+        print(f"📂 Using dataset: {export_dir}")
+        print(f"📄 Using config: {dataset_yaml}")
 
         # Train
         print("🚀 Starting training...")
@@ -110,10 +143,11 @@ def main():
         model_path = args.model or "models/best.pt"
 
         # Find dataset
-        annotations_dir = Path("data/annotations")
-        exports = sorted(annotations_dir.glob("export_*"))
-        latest_export = exports[-1]
-        dataset_yaml = latest_export / "dataset.yaml"
+        dataset_yaml = find_dataset_yaml(args.export_dir)
+
+        if not dataset_yaml:
+            print("❌ No dataset.yaml found. Please run training first or split your dataset.")
+            return
 
         validate_model(model_path, dataset_yaml)
 
@@ -122,6 +156,22 @@ def main():
         source_dir = args.source or "data/frames"
 
         detect_images(model_path, source_dir, Path("runs"))
+
+def create_dataset_yaml(export_dir, classes):
+    """Create dataset.yaml for properly split dataset"""
+    dataset_yaml = export_dir / "dataset.yaml"
+
+    yaml_content = {
+        'train': str((export_dir / 'train' / 'images').absolute()),
+        'val': str((export_dir / 'val' / 'images').absolute()),
+        'nc': len(classes),
+        'names': {i: name for i, name in enumerate(classes)}
+    }
+
+    with open(dataset_yaml, 'w') as f:
+        yaml.dump(yaml_content, f)
+
+    return dataset_yaml
 
 if __name__ == "__main__":
     main()
