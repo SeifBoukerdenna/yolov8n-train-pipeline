@@ -64,4 +64,4 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     syncer = GCSSync(config)
-    syncer.sync_directory("data/processed")
+    syncer.sync_directory("data/raw_frames")

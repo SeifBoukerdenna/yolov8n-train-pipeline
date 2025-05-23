@@ -1,9 +1,0 @@
-[2025-05-22 18:25:00] Starting stage: Frame Extraction
-[2025-05-22 18:25:01] ✓ Frame Extraction completed successfully
-[2025-05-22 18:25:01] Starting stage: GCS Sync
-[2025-05-22 18:25:03] ✓ GCS Sync completed successfully
-[2025-05-22 18:25:03] Starting stage: Label Studio Sync
-[2025-05-22 18:25:05] ✓ Label Studio Sync completed successfully
-[2025-05-22 18:25:05] Starting stage: Annotation Validation
-[2025-05-22 18:25:06] ✗ Annotation Validation failed: 
-[2025-05-22 18:25:06] Pipeline stopped due to error
