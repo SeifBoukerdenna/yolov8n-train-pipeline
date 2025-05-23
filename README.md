@@ -1,102 +1,123 @@
-# YOLOv8n Training Pipeline
+# YOLOv8n Training Pipeline User Guide
 
-An end-to-end workflow from raw gameplay videos to YOLOv8n training & validation.
+## Quick Start
 
----
+1. **Add videos** to `data/videos/` folder
+2. **Run scripts 1-5** in order
+3. **Label images** in Label Studio between steps 3-4
+4. **Train model** with step 5
 
 ## Prerequisites
 
-- Install [ffmpeg](https://ffmpeg.org/download.html) and [Google Cloud SDK (gsutil)](https://cloud.google.com/sdk/docs/install)
 - Python 3.8+
-- A Google Cloud Storage bucket (e.g. `bucket-clash-royal-ai`)
-- Label Studio configured with your bucket’s `raw_frames/` prefix
-- make sure to run:
+- Google Cloud SDK with authentication
+- Label Studio running on localhost:8080
+- Required packages: `pip install ultralytics google-cloud-storage label-studio-sdk opencv-python pyyaml requests`
+
+## Configuration
+
+Edit `configs/config.yaml`:
+- Set your GCS bucket name
+- Update Label Studio API key and project ID
+- Adjust training parameters (epochs, batch size, etc.)
+
+## Step-by-Step Workflow
+
+### 1. Extract Frames
 ```bash
-    git clone https://github.com/ultralytics/ultralytics.git
+python scripts/1_extract_frames.py
+```
+**What it does:** Converts videos to PNG frames at 2 FPS
+- **Input:** `data/videos/*.mp4`
+- **Output:** `data/frames/video_name/*.png`
+
+### 2. Upload to Google Cloud
+```bash
+python scripts/2_upload_to_gcs.py
+```
+**Options:**
+- Default: Keeps folder structure
+- `--flat`: All images in one folder
+
+**What it does:** Uploads frames to GCS bucket
+
+### 3. Import to Label Studio
+```bash
+python scripts/3_import_to_labelstudio.py
+```
+**What it does:** Creates signed URLs and imports images to Label Studio
+- Clears existing tasks
+- Creates new labeling tasks
+
+### 4. Label Images
+1. Open `http://localhost:8080`
+2. Click on images to label
+3. Draw bounding boxes around objects
+4. Submit each task
+
+### 5. Export Annotations
+```bash
+python scripts/4_export_annotations.py
+```
+**What it does:** Downloads labeled data in YOLO format
+- **Output:** `data/annotations/export_TIMESTAMP/`
+- Downloads both images and label files
+- Matches filenames for training
+
+### 6. Train Model
+```bash
+python scripts/5_train_model.py train
+```
+**What it does:** Trains YOLOv8n model on your data
+- Uses latest export automatically
+- Saves model to `models/best.pt`
+- Auto-validates after training
+
+## Model Operations
+
+### Validate Model Performance
+```bash
+python scripts/5_train_model.py validate --model models/best.pt
+```
+Shows metrics: mAP@50, precision, recall
+
+### Run Detection on New Images
+```bash
+python scripts/5_train_model.py detect --source data/frames --model models/best.pt
+```
+**Options:**
+- `--source`: Directory with images to detect
+- `--model`: Model file to use (default: models/best.pt)
+
+**Output:** Annotated images in `runs/detect/`
+
+## Directory Structure
+```
+pipeline/
+├── configs/config.yaml          # Main configuration
+├── scripts/
+│   ├── 1_extract_frames.py      # Video → frames
+│   ├── 2_upload_to_gcs.py       # Frames → cloud
+│   ├── 3_import_to_labelstudio.py # Cloud → Label Studio
+│   ├── 4_export_annotations.py  # Export labeled data
+│   └── 5_train_model.py         # Train/validate/detect
+├── data/
+│   ├── videos/                  # Input videos
+│   ├── frames/                  # Extracted frames
+│   └── annotations/             # Exported labels
+└── models/                      # Trained models
 ```
 
+## Troubleshooting
 
-## 1. Drop raw gameplay videos
+**Authentication errors:** Set `GOOGLE_APPLICATION_CREDENTIALS` to service account JSON
+**Label Studio connection:** Check API key and project ID in config
+**No images exported:** Ensure tasks are completed (not skipped) in Label Studio
+**Training fails:** Verify images and labels have matching filenames
 
-Place your `.mp4` files into:
+## Tips
 
-```bash
-yolov8n-train-pipeline/videos/
-```
-
-## 2. Extract frames
-
-```bash
-cd yolov8n-train-pipeline
-chmod +x scripts/extract_frames.sh
-./scripts/extract_frames.sh
-```
-- Input: videos/*.mp4
-- Output: data/raw_frames/{video_name}/*.png (2 fps by default)
-
-## 3. Upload frames for labeling
-Make the script executable and run it:
-
-```bash
-chmod +x scripts/upload_frames.sh
-./scripts/upload_frames.sh
-```
-
-Syncs: data/raw_frames/ → gs://bucket-clash-royal-ai/match_1/raw_frames/
-
-## 4. Label on LS
-Unzip into data/export/ so you have:
-```bash
-data/export/images/*.png
-data/export/labels/*.txt
-```
-
-## 5. Split into train / val
-Make the script executable and run it (default 10% validation split):
-```bash
-chmod +x scripts/split_dataset.sh
-./scripts/split_dataset.sh data/export/images data/export/labels 0.1
-```
-
-- Args:
-
-- 1. Source images dir (data/export/images)
-
-- 2. Source labels dir (data/export/labels)
-
-- 3. Validation ratio (0.1 = 10%)
-
-- output:
-    ```bash
-    data/images/train/
-    data/images/val/
-    data/labels/train/
-    data/labels/val/
-    ```
-
-## 6. Install dependencies
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-## 7. Train YOLOv8n
-```bash
-EPOCHS=50 IMG_SIZE=640 BATCH_SIZE=16 python scripts/train.py
-```
-- Output: models/exp1/weights/best.pt
-
-
-## 8. Evaluate your model
-```bash
-WEIGHTS_PATH=models/exp1/weights/best.pt python scripts/evaluate.py
-```
-- Prints mAP, precision, recall, etc.
-
-
-
-
-
-
-
+- Label at least 50+ images for decent results
+- Use consistent labeling across all images
+- Keep class names simple and clear
+- Back up your `models/best.pt` file

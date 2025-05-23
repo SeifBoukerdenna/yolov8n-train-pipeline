@@ -1,5 +1,0 @@
-train: ../data/images/train
-val:   ../data/images/val
-nc:    1
-names:
-  0: deployment

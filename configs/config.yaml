@@ -1,0 +1,28 @@
+# configs/config.yaml
+
+# Google Cloud Storage
+gcs:
+  bucket: bucket-clash-royal-ai
+  prefix: frames/
+
+# Label Studio
+labelstudio:
+  url: http://localhost:8080
+  api_key: e73c69c8b83fdf2b539cd4e468ef84f49ea78ddd
+  project_id: 9
+
+# Frame Extraction
+extraction:
+  fps: 2
+  quality: 95
+
+# Training
+training:
+  epochs: 50
+  batch_size: 16
+  img_size: 640
+  device: mps  # Use 'mps' for M1/M2 Macs, 'cpu' as fallback
+
+# Classes
+classes:
+  - deployment
