@@ -24,8 +24,8 @@ dataset:
 
 # Training
 training:
-  epochs: 50
-  batch_size: 16
+  epochs: 30
+  batch_size: 4
   img_size: 640
   device: mps  # Use 'mps' for M1/M2 Macs, 'cpu' as fallback
 

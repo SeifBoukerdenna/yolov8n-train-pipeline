@@ -6,11 +6,7 @@ from pathlib import Path
 
 def run_cmd(cmd):
     """Execute command and show output"""
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    if result.stdout:
-        print(result.stdout)
-    if result.stderr:
-        print(result.stderr)
+    result = subprocess.run(cmd, shell=True)
     return result.returncode == 0
 
 def main():

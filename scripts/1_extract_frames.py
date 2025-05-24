@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 from tqdm import tqdm
 
-def extract_frames(video_path, output_dir, fps=2, frame_skip=1):
+def extract_frames(video_path, output_dir, fps=2, frame_skip=1, video_index=1):
     """Extract frames from video with optional frame skipping"""
     cap = cv2.VideoCapture(str(video_path))
     fps_video = cap.get(cv2.CAP_PROP_FPS)
@@ -18,7 +18,7 @@ def extract_frames(video_path, output_dir, fps=2, frame_skip=1):
     saved_count = 0
 
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    pbar = tqdm(total=total_frames, desc=f"Processing {video_path.name}")
+    pbar = tqdm(total=total_frames, desc=f"Processing CR_{video_index}")
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -28,7 +28,7 @@ def extract_frames(video_path, output_dir, fps=2, frame_skip=1):
         if frame_count % frame_interval == 0:
             # Apply frame skipping - only save every nth frame that would be extracted
             if saved_count % frame_skip == 0:
-                output_path = output_dir / f"{video_path.stem}_{saved_count:05d}.png"
+                output_path = output_dir / f"CR_{video_index}_{saved_count:05d}.png"
                 cv2.imwrite(str(output_path), frame)
             saved_count += 1
 
@@ -89,9 +89,14 @@ def main():
         print("❌ data/videos/ directory not found")
         return
 
-    videos = list(video_dir.glob("*.mp4"))
+    # Support multiple video formats
+    video_extensions = ["*.mp4", "*.mov", "*.MP4", "*.MOV"]
+    videos = []
+    for ext in video_extensions:
+        videos.extend(video_dir.glob(ext))
+
     if not videos:
-        print("❌ No .mp4 files found in data/videos/")
+        print("❌ No video files found in data/videos/ (supported: .mp4, .mov, .MP4, .MOV)")
         return
 
     print(f"Found {len(videos)} videos")
@@ -99,16 +104,17 @@ def main():
         print(f"📊 Frame skip: extracting 1 out of every {args.frame_skip} frames")
 
     total_extracted = 0
-    for video_path in videos:
-        output_dir = frames_dir / video_path.stem
+    for i, video_path in enumerate(videos, 1):
+        output_dir = frames_dir / f"CR_{i}"
         count = extract_frames(
             video_path,
             output_dir,
             config['extraction']['fps'],
-            args.frame_skip
+            args.frame_skip,
+            i
         )
         total_extracted += count
-        print(f"✓ {video_path.name}: {count} frames extracted")
+        print(f"✓ CR_{i}: {count} frames extracted")
 
         # Randomize filenames if requested
         if args.randomize:

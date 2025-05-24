@@ -238,7 +238,7 @@ def main():
                        help='Output directory for results')
     parser.add_argument('--save-images', action='store_true',
                        help='Save annotated images with detections')
-    parser.add_argument('--max-images', type=int, default=50,
+    parser.add_argument('--max-images', type=int, default=300,
                        help='Maximum images to save (for annotated output)')
 
     args = parser.parse_args()
