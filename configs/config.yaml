@@ -9,11 +9,11 @@ gcs:
 labelstudio:
   url: http://localhost:8080
   api_key: e73c69c8b83fdf2b539cd4e468ef84f49ea78ddd
-  project_id: 9
+  project_id: 10
 
 # Frame Extraction
 extraction:
-  fps: 2
+  fps: 5
   quality: 95
 
 # Dataset Splitting
